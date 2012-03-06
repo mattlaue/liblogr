@@ -1,0 +1,33 @@
+logr (1.0.2-1~oneiric1) oneiric; urgency=low
+
+  * Package for oneiric
+
+ -- Matthew R. Laue <matt@akirisolutions.com>  Mon, 27 Feb 2012 20:53:37 -0800
+
+logr (1.0.2-1~natty1) natty; urgency=low
+
+  * Package for natty
+
+ -- Matthew R. Laue <matt@akirisolutions.com>  Mon, 27 Feb 2012 20:53:37 -0800
+
+logr (1.0.2-1~maverick1) maverick; urgency=low
+
+  * Package for maverick
+
+ -- Matthew R. Laue <matt@akirisolutions.com>  Mon, 27 Feb 2012 20:53:37 -0800
+
+logr (1.0.1-1) unstable; urgency=low
+
+  * Add an overview man page
+  * Auto-generate the version and date in the logr man page
+  * Add missing logr_info function
+  * Fix 'make install'
+
+ -- Matthew R. Laue <matt@akirisolutions.com>  Mon, 27 Feb 2012 15:59:52 -0800
+
+logr (1.0.0-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Matthew R. Laue <matt@akirisolutions.com>  Mon, 31 Jan 2012 20:51:55 -0800
+

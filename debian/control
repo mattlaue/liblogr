@@ -1,0 +1,23 @@
+Source: logr
+Priority: extra
+Maintainer: Matthew R. Laue <matt@akirisolutions.com>
+Build-Depends: debhelper (>= 8.0.0), autotools-dev, 
+Standards-Version: 3.9.2
+Section: libs
+Homepage: http://www.akirisolutions.com/opensource/logr
+Vcs-Git: https://code.google.com/p/liblogr/
+Vcs-Browser: http://code.google.com/p/liblogr/source/browse/
+
+Package: logr-dev
+Section: libdevel
+Architecture: any
+Depends: logr (= ${binary:Version})
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
+
+Package: logr
+Section: libs
+Architecture: any
+Depends: debianutils, ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

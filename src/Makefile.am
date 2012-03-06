@@ -1,7 +1,7 @@
 AM_CPPFLAGS = -Wall -Werror
 lib_LTLIBRARIES = liblogr.la
 
-library_includedir=.
+library_includedir=$(includedir)
 library_include_HEADERS = logr.h
 
 liblogr_la_SOURCES = logr.c

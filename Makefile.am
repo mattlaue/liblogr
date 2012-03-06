@@ -13,6 +13,6 @@ else
 EXAMPLES_DIR =
 endif
 
-SUBDIRS = src $(EXAMPLES_DIR) $(DOC_DIR)
+SUBDIRS = src man $(EXAMPLES_DIR) $(DOC_DIR)
 
 dist_noinst_SCRIPTS = autogen.sh

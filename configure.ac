@@ -1,4 +1,4 @@
-AC_INIT([logr], [1.0.0])
+AC_INIT([logr], [1.0.2])
 AC_PREREQ([2.67])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
@@ -44,12 +44,15 @@ AC_ARG_ENABLE(examples,
      [ ac_enable_examples=$enableval ], [ ac_enable_examples=yes] )
 AM_CONDITIONAL(LOGR_ENABLE_EXAMPLES, [test "x${ac_enable_examples}" != "xno"])
 
+ac_man_date=`date  +"%B %Y"`
 AC_SUBST([LOGR_SO_VERSION], [1:0:1])
+AC_SUBST([MAN_DATE], [${ac_man_date}])
 
 AC_OUTPUT([
     Makefile
     src/Makefile
     doc/Makefile doc/Doxyfile
+    man/Makefile man/logr.7
     examples/Makefile
 ])
 AC_OUTPUT

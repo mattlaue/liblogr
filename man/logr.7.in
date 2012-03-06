@@ -1,0 +1,413 @@
+.TH logr 7 "@MAN_DATE@" "version @VERSION@"
+.SH NAME
+logr \- customizable logging library for C/C++
+.SH SYNOPSIS
+.nf
+.B #include <logr.h>
+
+.B int logr_emerg(char *format, ...);
+.B int logr_alert(char *format, ...);
+.B int logr_crit(char *format, ...);
+.B int logr_err(char *format, ...);
+.B int logr_warning(char *format, ...);
+.B int logr_notice(char *format, ...);
+.B int logr_info(char *format, ...);
+.B int logr_debug(char *format, ...);
+
+.B logr_t *logr_getlogger();
+
+.B int logr_set_level(logr_t *logr, unsigned int level);
+.B int logr_set_prefix_format(logr_t *logr, char *fmt)
+.B int logr_set_timestamp_format(logr_t *logr, char *fmt)
+
+.B int logr_set_threshold(logr_t *logr, off_t threshold);
+
+.B int logr_printf(logr_t *logr, int log_level, char *format, ...);
+
+.B int logr_open(logr_t *logr, char *path);
+
+.B logr_t *logr_alloc(char *path);
+.B void logr_free(logr_t *logr);
+.sp
+Compile and link with \fI\-llogr\fP.
+.SH DESCRIPTION
+The logr library is a general-purpose logging library for C/C+ similar to Java's java.util.logging or Python's logging module. Namely:
+.IP \- 3
+variadic log output with pre-specified headers.
+.IP \- 3
+automatic log rotation and compression based on size.
+.PP
+The library provides a global
+.B logr_t object
+- via
+.B logr_getlogger()
+- that will suffice for most programs.  By default, the global
+.B logr_t
+object outputs to \fIstderr\fP and has no prefix.
+.PP
+To use the logger, first obtain the logger object, for example:
+.in +4n
+.nf
+
+logr_t *logr = logr_getlogger();
+.fi
+.in
+.PP
+You can then start logging by calling a
+.B logr_xxx()
+function such as:
+.in +4n
+.nf
+
+logr_err("All work and no play makes %s a dull boy.\\n", "Jack");
+
+.fi
+.in
+which would result in the following output to
+.I stderr
+exactly like a call to
+.B fprintf(stderr, ...):
+.in +4n
+.nf
+
+All work and no play makes Jack a dull boy.
+.fi
+.in
+.SH SPECIFYING THE PREFIX
+You can change the prefix format by calling
+.B logr_set_prefix_format.
+For example:
+.in +4n
+.nf
+
+ logr_set_prefix_format(logr_getlogger(), LOGR_PREFIX_FORMAT_BASIC);
+
+.fi
+.in
+The same call to
+.B logr_err
+shown above would then result in:
+.in +4n
+.nf
+
+2012-02-06-12:26:29 [err] All work and no play makes Jack a dull boy.
+
+.fi
+.in
+You can choose two formats
+.B LOGR_PREFIX_FORMAT_BASIC
+and
+.B LOGR_PREFIX_FORMAT_VERBOSE
+or alternatively, you can set your own format.  The
+.B LOGR_PREFIX_FORMAT_BASIC
+format is defined as follows:
+.in +4n
+.nf
+
+#define LOGR_PREFIX_FORMAT_BASIC "%{timestamp}s [%{priority}s] "
+
+.fi
+.in
+and
+.B LOGR_PREFIX_FORMAT_VERBOSE
+is defined as:
+.in +4n
+.nf
+
+#define LOGR_PREFIX_FORMAT_VERBOSE \\
+   "%{timestamp}s [%{priority}s] @ %{file}s:%{line}d(%{pretty}s) "
+
+.fi
+.in
+The full list of components that can be included in a prefix format is:
+.in +4n
+.B %{file}s - source file name
+.br
+.B %{line}d - source line number
+.br
+.B %{func}s - calling function
+.br
+.B %{pretty}s - 'pretty' function name
+.br
+.B %{level}d - log level as an integer
+.br
+.B %{level}s - log level name
+.br
+.B %{priority}d - same as %{level}d
+.br
+.B %{priority}s - same as %{level}s
+.br
+.B %{pid}d - process ID of the current process
+.br
+.B %{timestamp}s - entry timestamp using the specified format
+.in
+.PP
+The format used is similar to
+.B printf(3)
+but with
+.B "{component}"
+being a
+.B logr
+component that is inserted at that point.
+.SH LOGGING LEVELS
+.B logr_err
+is one of the logging functions available.  The complete
+list of functions for outputing a log is:
+.B logr_emerg, logr_alert, logr_crit, logr_err, logr_warning, logr_notice,
+.B logr_info and logr_debug.
+.PP
+A message is logged if its level is equal to or lower than the
+.B logr's
+current log level.  You can set the log level via:
+.in +4n
+.nf
+
+int logr_set_level(logr_t *logr, unsigned int level);
+
+.fi
+.in
+The default level is
+.B LOG_ERR
+which has a value of 3. This results in messages being be logged
+with levels
+.B LOG_ERR(3), LOG_CRIT(2), LOG_ALERT(1)
+and 
+.B LOG_EMERG(0).
+.PP
+The
+.B level
+can be any of the standard log levels as defined in
+.B <sys/sysylog.h>:
+.B LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE,
+.B LOG_INFO
+or
+.B LOG_DEBUG.
+.B LOG_EMERG 
+is 0 with the lowest level and 
+.B LOG_DEBUG
+is the highest level with a value of 7.
+.PP
+Alternatively, instead of calling one of the
+.B logr_xxxx
+functions, you can call
+.B logr_printf()
+and specify the log level as an argument.  For example:
+.in +4n
+.nf
+
+logr_printf(logr, LOG_ALERT, "All work and no play makes %s a dull boy.\\n", "Jack");
+.fi
+.in
+.SH TIMESTAMPS
+The timestamp format can be customized by using the standard
+ISO 8601 date format - an example of this format
+can be found in strptime(3).  For example,
+.B LOGR_DEFAULT_DATE_FORMAT
+is defined like this:
+.in +4n
+.nf
+
+#define LOGR_DEFAULT_DATE_FORMAT   "%F-%T" 
+
+.fi
+.in
+The
+.B %F
+timestamp specification is equivalent to:
+.B %Y-%m-%d
+and the
+.B %T
+is equivalent to
+.B %H:%M:%S
+resulting in the default timestamp looking like this:
+.in +4n
+.nf
+
+2012-02-06-12:53:21 [err] All work and no play makes Jack a dull boy.
+
+.fi
+.in
+You can change the timestamp format by calling:
+.in +4n
+.nf
+
+int logr_set_timestamp_format(logr_t *logr, char *fmt)
+
+.fi
+.in
+For example:
+.in +4n
+.nf
+
+logr_set_timestamp_format(logr, "[%a %b %d %T %Y]");
+
+.fi
+.in
+which results in this format of timestamp in the log:
+.in +4n
+.nf
+
+[Mon Feb 06 12:46:18 2012] [err] All work and no play makes Jack a dull boy.
+.fi
+.in
+.SH LOGGING TO A FILE
+By default, logs are written to
+.I stderr.
+You can specify that logs be written to files via the
+.B logr_open function:
+.in +4n
+.nf
+
+int logr_open(logr_t *logr, char *path);
+
+.fi
+.in
+For example:
+.in +4n
+.nf
+
+retval = logr_open(logr, "file.log");
+
+.fi
+.in
+Subsequent logging calls will result in logs being appended to
+the file specified in the
+.B logr_open()
+call.
+.PP
+.B logr_open
+returns 0 on success and non-zero on failure.
+.B 
+.SH AUTOMATIC FILE ROTATION AND COMPRESSION
+When logging to a file with
+.B logr_open(),
+rather than the default of \fIstderr\fP,
+you can optionally
+specify how many bytes may be written to the file before the file
+is automatically closed, moved aside, possibly
+compressed, and a new log file is automatically
+opened.  This is referred to as "log file rotation".
+.PP
+You can set the threshold for the maximum number of bytes that
+can be written to a log file before the file is "rotated":
+.in +4n
+.nf
+
+int logr_set_threshold(logr_t *logr, off_t threshold);
+
+.fi
+.in
+By default, log files are not rotated - 
+.B log_set_threshold()
+must be called to enable log file rotation.enable log file rotation.
+.PP
+Files are rotated and compressed by a child process using
+.B savelog(8)
+after the log files have reached their maximum threshold size.
+.SH MULTIPLE LOGGERS
+You can have more than one logger in the same
+program,  for example, one that logs to
+.I stderr
+and another that logs
+to a file and rotates and compresses the log files.  To have
+multiple loggers, you allocate additional
+.B logr_t
+structures via:
+.in +4n
+.nf
+
+logr_t *logr_alloc(char *path);
+
+.fi
+.in
+This allocates and returns a new
+.B logr_t
+structure.  If
+.B path
+is
+.B NULL,
+then the output will be directed to
+.I stderr
+unless/until you
+call
+.B logr_open
+with that
+.B logr
+structure. 
+.PP
+If
+.B path
+is not null in the call to
+.B logr_alloc(),
+logging will be directed to the specified filename.
+.PP
+After finishing with a log structure you can free its resources via:
+.in +4n
+.nf
+
+void logr_free(logr_t *logr);
+.fi
+.in
+.SH EXAMPLES
+To implicity use the global
+.B logr_t
+instance, call one of the
+.B logr_xxx()
+functions such as
+.B logr_err().
+The log levels correspond to the definitions of
+.B syslog(3).
+For example:
+.in +4n
+.nf
+
+logr_err("Hello, %s!\\n", "world"); 
+.fi
+.in
+.PP
+To direct the log output to a file instead of \fIstderr\fP and
+prefix each entry with the ISO 8601 date and time: 
+.in +4n
+.nf
+
+#include <logr.h>
+#include <assert.h>
+
+int
+main(int argc, char **argv)
+{
+    int rc;
+    logr_t *logr = logr_getlogger();
+
+    rc = logr_set_timestamp_format(logr, "%F-%T");
+    assert(rc == 0);
+
+    rc = logr_set_prefix_format(logr, "[%{timestamp}s] ");
+    assert(rc == 0);
+
+    rc = logr_open(logr, "/tmp/foo.log");
+    assert(rc == 0);
+
+    logr_err("Hello %s!\\n", "World");
+    return 0;
+}
+.fi
+.in
+.PP
+The above program will append a line to '/tmp/foo' similar to:
+.sp
+    [2012-02-04-08:17:05] Hello World!
+.SH RETURN VALUES
+The
+.B logr
+functions generally return 0 on success and non-zero on failure.
+.SH SEE ALSO
+.B savelog(8)
+.PP
+The detailed API documention is available at:
+.in +4n
+
+.B http://www.akirisolutions.com/opensource/logr.html.
+.in
+.PP
+The API is documented using Doxygen and is also included with the source package.

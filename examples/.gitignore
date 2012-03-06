@@ -1,7 +1,3 @@
 *
 !.gitignore
 !*.c
-<<<<<<< HEAD
-!Makefile.am
-=======
->>>>>>> fd438382d359fdc69aa98e3b4174bd7aba97bd87
