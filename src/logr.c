@@ -22,19 +22,48 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
 #include <time.h>
-#include <pthread.h>
 #include <unistd.h>
-#include <ctype.h>
 
+#include <ctype.h>
 #include <sys/types.h>
-#include <sys/wait.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef __WIN32
+#include <windows.h>
+#include "win32/pthread.h"
+#ifndef ENOTSUP
+#define ENOTSUP 48 /* missing from mingw */
+#endif
+#else
+#include <pthread.h>
+#endif
+
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#else
+typedef int bool;
+#define true 1
+#define false 0
+#endif
 
 #define SYSLOG_NAMES
+#if defined(HAVE_SYSLOG_H)
+#include <syslog.h>
+#elif defined(__WIN32)
+#include "win32/syslog.h"
+#endif
+
+#ifdef HAVE_SAVELOG
+#include <sys/wait.h> // waitpid()
+#endif
+
 #include "logr.h"
 
 #define LOGR_SAVELOG_WAITPID_MAX 10
@@ -56,8 +85,10 @@ struct logr {
     unsigned int level;
     off_t size;
     off_t threshold;
+#ifdef HAVE_SAVELOG
     pid_t savelog_pid;
     unsigned int savelog_waitpid_retries;
+#endif
     logr_ops_t ops;
 };
 
@@ -103,7 +134,7 @@ _logr_field_char(const char c)
     if ((c == '{') || (c == '}') || (c == '%')) {
         return false;
     }
-    if (isprint(c)) {
+    if (isprint((int)c)) {
         return true;
     }
     return false;
@@ -112,7 +143,7 @@ _logr_field_char(const char c)
 static inline bool
 _logr_specifier_char(const char c)
 {
-    return isalpha(c);
+    return isalpha((int)c);
 }
 
 static inline void
@@ -151,6 +182,7 @@ logr_set_level(logr_t *logr, unsigned int level)
     return 0;
 }
 
+#ifdef HAVE_SAVELOG
 static void
 _logr_sigchild(int sig, siginfo_t *si, void *unused)
 {
@@ -160,10 +192,13 @@ _logr_sigchild(int sig, siginfo_t *si, void *unused)
         pid = waitpid(-1, NULL, WNOHANG);
     } while (pid > 0);
 }
+#endif
 
 int
 logr_set_threshold(logr_t *logr, off_t threshold)
 {
+#ifdef HAVE_SAVELOG
+
     struct sigaction sa;
 
     if (logr == NULL) {
@@ -182,6 +217,11 @@ logr_set_threshold(logr_t *logr, off_t threshold)
     }
 
     return 0;
+
+#else // HAVE_SAVELOG
+    return _logr_errno(ENOTSUP);
+#endif
+
 }
 
 void
@@ -359,6 +399,7 @@ logr_set_ops(logr_t *logr, logr_ops_t *ops)
     return 0;
 }
 
+#ifdef HAVE_SAVELOG
 pid_t
 _logr_savelog(const char *path)
 {
@@ -377,6 +418,7 @@ _logr_savelog(const char *path)
     }
     return pid;
 }
+#endif
 
 static int
 _logr_fputs(const char *p, FILE *f)
@@ -397,8 +439,10 @@ _logr_timestamp(const char *fmt, char specifier, FILE *f)
 {
     int retval;
     char buf[LOGR_MAX_TIMESTAMP_SIZE];
-    struct tm tm;
+    size_t size = LOGR_MAX_TIMESTAMP_SIZE;
+    struct tm tm, *_tm;
     time_t t;
+    static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
     time(&t);
 
@@ -410,12 +454,17 @@ _logr_timestamp(const char *fmt, char specifier, FILE *f)
         return 0;
     }
 
-    localtime_r(&t, &tm);
+    pthread_mutex_lock(&lock);
+    /* don't use localtime_r since it's missing from mingw */
+    _tm = localtime(&t);
+    tm = *_tm;
+    pthread_mutex_unlock(&lock);
+
     if ((fmt == NULL) || (fmt[0] == 0)) {
         fmt = LOGR_DEFAULT_DATE_FORMAT;
     }
 
-    retval = strftime(buf, sizeof(buf), fmt, &tm);
+    retval = strftime(buf, size, fmt, &tm);
     if (retval <= 0) {
         return -1;
     }
@@ -475,7 +524,7 @@ logr_prefix(LOGR_XARGV, logr_t *logr, int level, FILE *f, const char *fmt)
         case CHARACTER:
             if (*p == '%') {
                 state = DIRECTIVE_SYMBOL;
-            } else if (isprint(*p) || (*p == '\r') || (*p == '\n')) {
+            } else if (isprint((int)(*p)) || (*p == '\r') || (*p == '\n')) {
                 retval = fputc(*p, f);
                 if (retval < 0) {
                     return -1;
@@ -553,11 +602,12 @@ logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
 {
     int n = 0, retval;
     FILE *f;
-    pid_t pid;
 
     logr_lock(logr);
 
+#ifdef HAVE_SAVELOG
     if (logr->savelog_pid > 0) {
+        pid_t pid;
         if (logr->savelog_waitpid_retries > 0) {
             pid = waitpid(logr->savelog_pid, NULL, WNOHANG | WUNTRACED);
         } else {
@@ -574,6 +624,7 @@ logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
             logr->savelog_waitpid_retries--;
         }
     }
+#endif
 
     if (logr->level < level) {
         logr_unlock(logr);
@@ -592,8 +643,10 @@ logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
     n += vfprintf(f, fmt, ap);
     logr->size += n;
 
+#ifdef HAVE_SAVELOG
     if ((logr->savelog_pid == 0) && (logr->threshold != 0) && (
             logr->size > logr->threshold)) {
+        pid_t pid;
         /* do a flush to ensure the file is not erroneously empty. */
         fflush(logr->f);
 
@@ -603,6 +656,7 @@ logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
             logr->savelog_waitpid_retries = LOGR_SAVELOG_WAITPID_MAX;
         }
     }
+#endif
     logr_unlock(logr);
 
     return n;
@@ -716,3 +770,4 @@ logr_debug_(LOGR_XARGV, const char *fmt, ...)
     va_end(ap);
     return n;
 }
+

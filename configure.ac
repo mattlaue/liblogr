@@ -1,4 +1,4 @@
-AC_INIT([logr], [1.0.2])
+AC_INIT([logr], [1.0.3])
 AC_PREREQ([2.67])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
@@ -6,21 +6,31 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_PROG_CC
 AC_PROG_LIBTOOL
+AC_HEADER_STDBOOL
 
-dnl syslog header
-AC_CHECK_HEADER([syslog.h],,
-    [AC_MSG_ERROR([*** cannot find headers for syslog])])
+AC_CANONICAL_HOST
+
+MINGW32=no
+case "${host_os}" in
+  *mingw32* )
+    MINGW32=yes
+    ;;
+esac
+AM_CONDITIONAL(MING, [test "x$MINGW32" = "xyes"])
+
+dnl pthread development files
+AC_CHECK_HEADERS([pthread.h],,
+    [AC_MSG_ERROR([*** cannot find pthread.h])])
+
+dnl optional headers
+AC_CHECK_HEADER([syslog.h],AC_DEFINE(HAVE_SYSLOG_H, 1, [...]),)
+AC_CHECK_HEADER([sys/prctl.h],AC_DEFINE(HAVE_PRCTL_H, 1, [...]),)
 
 dnl savelog binary
-AC_CHECK_PROG(HAVE_SAVELOG, savelog, true, false)
-if test "x$HAVE_SAVELOG" = "xfalse"; then
-   AC_MSG_ERROR([*** savelog executable not found])
+AC_CHECK_PROG(SAVELOG, savelog, yes, no)
+if test "x$SAVELOG" = "xyes" ; then
+   AC_DEFINE(HAVE_SAVELOG, 1, [...])
 fi
-
-dnl check for pthreads
-AC_CHECK_LIB(pthread, pthread_create,
-                      AM_CONDITIONAL(HAVE_PTHREADS, true),
-                      AM_CONDITIONAL(HAVE_PTHREADS, true))
 
 dnl Build documentation with Doxygen
 AC_ARG_ENABLE([doc],

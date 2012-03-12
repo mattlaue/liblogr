@@ -1,13 +1,11 @@
 /* Copyright (C) 2012 Akiri Solutions, Inc.
  * For conditions of distribution and use, see copyright notice in logr.h
  */
-#include <sys/utsname.h> // for uname()
-
 #include <logr.h>
 
 /*
  * Format log entries similar to Android's 'logcat':
- *     adb logcat -v time 
+ *     adb logcat -v time
  *
  * NOTE: Error values are ignored in the interest of readability.
  */
@@ -21,7 +19,7 @@
 #define LOGCAT_SILENT 6
 
 static const char *
-logcat_priority(int priority) 
+logcat_priority(int priority)
 {
     switch (priority) {
     case LOGCAT_FATAL:
@@ -54,10 +52,10 @@ main(int argc, char **argv)
     logr_set_ops(logr, &ops);
 
     logr_set_prefix_format(logr, "%{timestamp}s %{level}s/logcat( %{pid}d): ");
-    logr_set_timestamp_format(logr, "%m-%d %T.xxx");
+    logr_set_timestamp_format(logr, "%m-%d %H:%M:%S.xxx");
 
     /* This message will NOT be printed since LOG_INFO < LOG_WARNING */
-    logr_printf(logr, LOGCAT_INFO, 
+    logr_printf(logr, LOGCAT_INFO,
 		"All work and no play makes %s a dull boy.\n", "Jack");
     /* This message WILL be printed. */
     logr_printf(logr, LOGCAT_ERROR,

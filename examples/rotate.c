@@ -3,6 +3,11 @@
  */
 #include <string.h>
 #include <logr.h>
+#include <errno.h>
+
+#ifndef ENOTSUP
+#  define ENOTSUP 48 /* missing from mingw */
+#endif
 
 /* This example demonstrates setting a rotate threshold and automatically
    rotating file logs. */
@@ -18,13 +23,21 @@ main(int argc, char **argv)
     unsigned int threshold = 1024 * 1024; // 1 MB
     int i, n = (2.5 * threshold) / strlen(MSG); // ensure rotating twice...
 
+    retval = logr_set_threshold(logr, threshold);
+    if (retval != 0) {
+        if (errno == ENOTSUP) {
+            fprintf(stderr, "log rotation is not supported on this platform.\n");
+        } else {
+            perror("logr_set_threshold");
+        }
+        return -1;
+    }
+
     retval = logr_open(logr, LOGFILE);
     if (retval != 0) {
 	perror("logr_open");
 	return -1;
     }
-
-    logr_set_threshold(logr, threshold);
     
     for (i = 0; i < n; i++) {
 	logr_err(MSG);

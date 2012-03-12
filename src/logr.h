@@ -33,7 +33,6 @@ extern "C" {
 
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/syslog.h>
 
 /**
  * Basic prefix format that prints the datetime and level.
@@ -50,7 +49,7 @@ extern "C" {
  * Default format to use when printing the datetime.
  * <ISO 8601 date format>-<24-hour time>
  */
-#define LOGR_DEFAULT_DATE_FORMAT   "%F-%T"
+#define LOGR_DEFAULT_DATE_FORMAT   "%Y-%m-%d-%H:%M:%S"
 
 /**
  * Maximum number of bytes the date may be once expanded.

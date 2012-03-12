@@ -3,6 +3,8 @@
  */
 #include <logr.h>
 
+#define	LOG_DEBUG	7
+
 /*
  * Demonstrates basic use of the default logging instance.
  * NOTE: Error values are ignored in the interest of readability.
@@ -14,7 +16,7 @@ main(int argc, char **argv)
     /* Print to stderr without a prefix */
     logr_err("All work and no play makes %s a dull boy.\n", "Jack");
 
-    /* 
+    /*
      * Change the log level so more messages will be printed.
      * logr uses the syslog defines for levels by default.
      */
@@ -22,7 +24,7 @@ main(int argc, char **argv)
     logr_debug("All work and no play makes %s a dull boy.\n", "Jack");
 
     /*
-     * Set a prefix for log entries using the default format. 
+     * Set a prefix for log entries using the default format.
      */
     logr_set_prefix_format(logr_getlogger(), LOGR_PREFIX_FORMAT_BASIC);
     logr_notice("All work and no play makes %s a dull boy.\n", "Jack");

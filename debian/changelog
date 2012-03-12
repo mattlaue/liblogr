@@ -1,3 +1,9 @@
+logr (1.0.3) oneiric; urgency=low
+
+  * Port to WIN32 using MinGW
+
+ -- Matthew R. Laue <matt@akirisolutions.com>  Mon, 12 Mar 2012 16:27:14 -0700
+
 logr (1.0.2-1~oneiric1) oneiric; urgency=low
 
   * Package for oneiric
