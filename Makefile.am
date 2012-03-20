@@ -16,3 +16,6 @@ endif
 SUBDIRS = src man $(EXAMPLES_DIR) $(DOC_DIR)
 
 dist_noinst_SCRIPTS = autogen.sh
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = logr.pc

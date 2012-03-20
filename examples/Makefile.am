@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -I$(top_srcdir)/src -Werror -Wall
 
-if MING
+if MINGW
 LDADD = $(top_srcdir)/src/liblogr.la
 threads_LDADD = $(LDADD)
 else

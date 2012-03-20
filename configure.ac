@@ -1,5 +1,5 @@
 AC_INIT([logr], [1.0.3])
-AC_PREREQ([2.67])
+AC_PREREQ([2.65])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 
 AC_CONFIG_HEADERS([config.h])
@@ -16,26 +16,30 @@ case "${host_os}" in
     MINGW32=yes
     ;;
 esac
-AM_CONDITIONAL(MING, [test "x$MINGW32" = "xyes"])
+AM_CONDITIONAL(MINGW, [test "x$MINGW32" = "xyes"])
+
+if test "x$MINGW32" = "xyes" ; then
+   AM_CONDITIONAL(MINGW, true)
+else
+   dnl optional headers
+   AC_CHECK_HEADER([syslog.h],AC_DEFINE(HAVE_SYSLOG_H, 1, [...]),)
+   AC_CHECK_HEADER([sys/prctl.h],AC_DEFINE(HAVE_PRCTL_H, 1, [...]),)
+
+   dnl savelog binary
+   AC_CHECK_PROG(SAVELOG, savelog, yes, no)
+   if test "x$SAVELOG" = "xyes" ; then
+      AC_DEFINE(HAVE_SAVELOG, 1, [...])
+   fi
+fi
 
 dnl pthread development files
 AC_CHECK_HEADERS([pthread.h],,
     [AC_MSG_ERROR([*** cannot find pthread.h])])
 
-dnl optional headers
-AC_CHECK_HEADER([syslog.h],AC_DEFINE(HAVE_SYSLOG_H, 1, [...]),)
-AC_CHECK_HEADER([sys/prctl.h],AC_DEFINE(HAVE_PRCTL_H, 1, [...]),)
-
-dnl savelog binary
-AC_CHECK_PROG(SAVELOG, savelog, yes, no)
-if test "x$SAVELOG" = "xyes" ; then
-   AC_DEFINE(HAVE_SAVELOG, 1, [...])
-fi
-
 dnl Build documentation with Doxygen
 AC_ARG_ENABLE([doc],
 AS_HELP_STRING([--enable-doc], [Build the API documentation with Doxygen]),
-               [ac_enable_doc="yes"], [ac_enable_doc="no"])
+			       [ac_enable_doc="yes"], [ac_enable_doc="no"])
 
 if test "x$ac_enable_doc" != "xno"; then
     AC_CHECK_PROG(HAVE_DOXYGEN, doxygen, true, false)
@@ -60,6 +64,7 @@ AC_SUBST([MAN_DATE], [${ac_man_date}])
 
 AC_OUTPUT([
     Makefile
+    logr.pc
     src/Makefile
     doc/Makefile doc/Doxyfile
     man/Makefile man/logr.7
