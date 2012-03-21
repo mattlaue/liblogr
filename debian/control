@@ -11,13 +11,16 @@ Vcs-Browser: http://code.google.com/p/liblogr/source/browse/
 Package: logr-dev
 Section: libdevel
 Architecture: any
-Depends: logr (= ${binary:Version})
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: logr (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: customizable logging library for C/C++ - development
+ logr provides log file formatting and rotation in a similar fashion to Java's
+ java.util.logging package or Python's logging module.
 
 Package: logr
 Section: libs
 Architecture: any
-Depends: debianutils, ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: customizable logging library for C/C++
+ logr provides log file formatting and rotation in a similar fashion to Java's
+ java.util.logging package or Python's logging module.
+

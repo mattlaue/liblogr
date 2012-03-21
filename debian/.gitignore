@@ -1,0 +1,9 @@
+*.debhelper
+*.debhelper.log
+logr.substvars
+logr-dev.substvars
+logr
+logr-dev
+patches
+tmp
+files

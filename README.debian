@@ -1,0 +1,9 @@
+Packaging Instructions
+-----------------------
+# dch -v "<version>"
+- (optional) update version in configure.ac
+# make clean
+# ./autogen --prefix=/usr
+# make && make dist
+# mv logr-X.Y.Z.tar.gz logr_X.Y.Z.orig.tar.gz
+# debuild -us -uc
