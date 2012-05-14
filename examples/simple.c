@@ -3,8 +3,6 @@
  */
 #include <logr.h>
 
-#define	LOG_DEBUG	7
-
 /*
  * Demonstrates basic use of the default logging instance.
  * NOTE: Error values are ignored in the interest of readability.
@@ -20,7 +18,7 @@ main(int argc, char **argv)
      * Change the log level so more messages will be printed.
      * logr uses the syslog defines for levels by default.
      */
-    logr_set_level(logr_getlogger(), LOG_DEBUG);
+    logr_set_level(logr_getlogger(), LOGR_DEBUG);
     logr_debug("All work and no play makes %s a dull boy.\n", "Jack");
 
     /*

@@ -3,10 +3,6 @@
  */
 #include <logr.h>
 
-/* these are just values, by default they are converted to syslog names */
-#define	LOG_EMERG	0
-#define	LOG_CRIT	2
-
 /* This example demonstrates logging to the filesystem and using a local
  * logr_t instance. */
 
@@ -25,7 +21,7 @@ main(int argc, char **argv)
     }
 
     logr_set_prefix_format(logr, LOGR_PREFIX_FORMAT_BASIC);
-    logr_printf(logr, LOG_CRIT, "This output goes to stderr.\n");
+    logr_printf(logr, LOGR_CRIT, "This output goes to stderr.\n");
 
     retval = logr_open(logr, LOGFILE);
     if (retval != 0) {
@@ -34,7 +30,7 @@ main(int argc, char **argv)
 	return -1;
     }
 
-    logr_printf(logr, LOG_EMERG, "This output gets appended to %s.\n", LOGFILE);
+    logr_printf(logr, LOGR_EMERG, "This output gets appended to %s.\n", LOGFILE);
     logr_free(logr);
 
     printf("See '%s' for additional output.\n", LOGFILE);

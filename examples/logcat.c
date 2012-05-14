@@ -54,7 +54,7 @@ main(int argc, char **argv)
     logr_set_prefix_format(logr, "%{timestamp}s %{level}s/logcat( %{pid}d): ");
     logr_set_timestamp_format(logr, "%m-%d %H:%M:%S.xxx");
 
-    /* This message will NOT be printed since LOG_INFO < LOG_WARNING */
+    /* This message will NOT be printed since LOGR_INFO < LOGR_WARNING */
     logr_printf(logr, LOGCAT_INFO,
 		"All work and no play makes %s a dull boy.\n", "Jack");
     /* This message WILL be printed. */
