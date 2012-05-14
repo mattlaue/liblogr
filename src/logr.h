@@ -57,6 +57,21 @@ extern "C" {
  */
 #define LOGR_MAX_TIMESTAMP_SIZE 256
 
+/**
+ * Log levels.
+ * Based on equivalent ones in syslog.h.
+ * We define our own since syslog.h does not exist on windows.
+ */
+
+#define LOGR_EMERG   0
+#define LOGR_ALERT   1
+#define LOGR_CRIT    2
+#define LOGR_ERR     3
+#define LOGR_WARNING 4
+#define LOGR_NOTICE  5
+#define LOGR_INFO    6
+#define LOGR_DEBUG   7
+
 /// @cond
 #define LOGR_XARGV \
     const char *file, int line, const char *func, const char *pretty_func
@@ -249,7 +264,7 @@ typedef const char * (*logr_priority_func_t)(int);
 /* high-level interface */
 
 /**
- * Shorthand for: logr_printf(logr_getlogger(), LOG_EMERG, fmt, ...)
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_EMERG, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
  * \see logr_getlogger
@@ -260,7 +275,7 @@ typedef const char * (*logr_priority_func_t)(int);
 /// @endcond
 
 /**
- * Shorthand for: logr_printf(logr_getlogger(), LOG_ALERT, fmt, ...)
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_ALERT, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
  * \see logr_getlogger
@@ -271,7 +286,7 @@ typedef const char * (*logr_priority_func_t)(int);
 /// @endcond
 
 /**
- * Shorthand for: logr_printf(logr_getlogger(), LOG_CRIT, fmt, ...)
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_CRIT, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
  * \see logr_getlogger
@@ -282,7 +297,7 @@ typedef const char * (*logr_priority_func_t)(int);
 /// @endcond
 
 /**
- * Shorthand for: logr_printf(logr_getlogger(), LOG_ERR, fmt, ...)
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_ERR, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
  * \see logr_getlogger
@@ -293,7 +308,7 @@ typedef const char * (*logr_priority_func_t)(int);
 /// @endcond
 
 /**
- * Shorthand for: logr_printf(logr_getlogger(), LOG_WARNING, fmt, ...)
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_WARNING, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
  * \see logr_getlogger
@@ -304,7 +319,7 @@ typedef const char * (*logr_priority_func_t)(int);
 /// @endcond
 
 /**
- * Shorthand for: logr_printf(logr_getlogger(), LOG_NOTICE, fmt, ...)
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_NOTICE, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
  * \see logr_getlogger
@@ -315,7 +330,7 @@ typedef const char * (*logr_priority_func_t)(int);
 /// @endcond
 
 /**
- * Shorthand for: logr_printf(logr_getlogger(), LOG_INFO, fmt, ...)
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_INFO, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
  * \see logr_getlogger
@@ -326,7 +341,7 @@ typedef const char * (*logr_priority_func_t)(int);
 /// @endcond
 
 /**
- * Shorthand for: logr_printf(logr_getlogger(), LOG_DEBUG, fmt, ...)
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_DEBUG, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
  * \see logr_getlogger

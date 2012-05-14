@@ -53,18 +53,29 @@ typedef int bool;
 #define false 0
 #endif
 
-#define SYSLOG_NAMES
-#if defined(HAVE_SYSLOG_H)
-#include <syslog.h>
-#elif defined(__WIN32)
-#include "win32/syslog.h"
-#endif
-
 #ifdef HAVE_SAVELOG
 #include <sys/wait.h> // waitpid()
 #endif
 
+typedef struct _code {
+    char *c_name;
+    int c_val;
+} CODE;
+
 #include "logr.h"
+
+CODE prioritynames[] = {
+    { "alert", LOGR_ALERT },
+    { "crit", LOGR_CRIT },
+    { "debug", LOGR_DEBUG },
+    { "emerg", LOGR_EMERG },
+    { "err", LOGR_ERR },
+    { "info", LOGR_INFO },
+    { "notice", LOGR_NOTICE },
+    { "warning", LOGR_WARNING },
+    { NULL, -1 }
+};
+
 
 #define LOGR_SAVELOG_WAITPID_MAX 10
 #define _XARGS file, line, func, pretty_func
@@ -94,7 +105,7 @@ struct logr {
 
 static struct logr logr = {
     .lock = PTHREAD_MUTEX_INITIALIZER,
-    .level = LOG_ERR,
+    .level = LOGR_ERR,
 };
 
 logr_t *
@@ -107,7 +118,7 @@ _logr_init(logr_t *logr)
 {
     memset(logr, 0, sizeof(struct logr));
     pthread_mutex_init(&logr->lock, NULL);
-    logr->level = LOG_ERR;
+    logr->level = LOGR_ERR;
 }
 
 static inline int
@@ -682,7 +693,7 @@ logr_emerg_(LOGR_XARGV, const char *fmt, ...)
     int n = 0;
 
     va_start(ap, fmt);
-    n += logr_vxprintf(_XARGS, &logr, LOG_EMERG, fmt, ap);
+    n += logr_vxprintf(_XARGS, &logr, LOGR_EMERG, fmt, ap);
     va_end(ap);
     return n;
 }
@@ -694,7 +705,7 @@ logr_alert_(LOGR_XARGV, const char *fmt, ...)
     int n = 0;
 
     va_start(ap, fmt);
-    n += logr_vxprintf(_XARGS, &logr, LOG_ALERT, fmt, ap);
+    n += logr_vxprintf(_XARGS, &logr, LOGR_ALERT, fmt, ap);
     va_end(ap);
     return n;
 }
@@ -706,7 +717,7 @@ logr_crit_(LOGR_XARGV, const char *fmt, ...)
     int n = 0;
 
     va_start(ap, fmt);
-    n += logr_vxprintf(_XARGS, &logr, LOG_CRIT, fmt, ap);
+    n += logr_vxprintf(_XARGS, &logr, LOGR_CRIT, fmt, ap);
     va_end(ap);
     return n;
 }
@@ -718,7 +729,7 @@ logr_err_(LOGR_XARGV, const char *fmt, ...)
     int n = 0;
 
     va_start(ap, fmt);
-    n += logr_vxprintf(_XARGS, &logr, LOG_ERR, fmt, ap);
+    n += logr_vxprintf(_XARGS, &logr, LOGR_ERR, fmt, ap);
     va_end(ap);
     return n;
 }
@@ -730,7 +741,7 @@ logr_warning_(LOGR_XARGV, const char *fmt, ...)
     int n = 0;
 
     va_start(ap, fmt);
-    n += logr_vxprintf(_XARGS, &logr, LOG_WARNING, fmt, ap);
+    n += logr_vxprintf(_XARGS, &logr, LOGR_WARNING, fmt, ap);
     va_end(ap);
     return n;
 }
@@ -742,7 +753,7 @@ logr_notice_(LOGR_XARGV, const char *fmt, ...)
     int n = 0;
 
     va_start(ap, fmt);
-    n += logr_vxprintf(_XARGS, &logr, LOG_NOTICE, fmt, ap);
+    n += logr_vxprintf(_XARGS, &logr, LOGR_NOTICE, fmt, ap);
     va_end(ap);
     return n;
 }
@@ -754,7 +765,7 @@ logr_info_(LOGR_XARGV, const char *fmt, ...)
     int n = 0;
 
     va_start(ap, fmt);
-    n += logr_vxprintf(_XARGS, &logr, LOG_INFO, fmt, ap);
+    n += logr_vxprintf(_XARGS, &logr, LOGR_INFO, fmt, ap);
     va_end(ap);
     return n;
 }
@@ -766,7 +777,7 @@ logr_debug_(LOGR_XARGV, const char *fmt, ...)
     int n = 0;
 
     va_start(ap, fmt);
-    n += logr_vxprintf(_XARGS, &logr, LOG_DEBUG, fmt, ap);
+    n += logr_vxprintf(_XARGS, &logr, LOGR_DEBUG, fmt, ap);
     va_end(ap);
     return n;
 }
