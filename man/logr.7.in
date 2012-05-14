@@ -167,24 +167,24 @@ int logr_set_level(logr_t *logr, unsigned int level);
 .fi
 .in
 The default level is
-.B LOG_ERR
+.B LOGR_ERR
 which has a value of 3. This results in messages being be logged
 with levels
-.B LOG_ERR(3), LOG_CRIT(2), LOG_ALERT(1)
+.B LOGR_ERR(3), LOGR_CRIT(2), LOGR_ALERT(1)
 and 
-.B LOG_EMERG(0).
+.B LOGR_EMERG(0).
 .PP
 The
 .B level
-can be any of the standard log levels as defined in
-.B <sys/sysylog.h>:
-.B LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE,
-.B LOG_INFO
+can be any of the following levels (similar to the LOG_* levels defined in
+.B <sys/sysylog.h>):
+.B LOGR_EMERG, LOGR_ALERT, LOGR_CRIT, LOGR_ERR, LOGR_WARNING, LOGR_NOTICE,
+.B LOGR_INFO
 or
-.B LOG_DEBUG.
-.B LOG_EMERG 
+.B LOGR_DEBUG.
+.B LOGR_EMERG 
 is 0 with the lowest level and 
-.B LOG_DEBUG
+.B LOGR_DEBUG
 is the highest level with a value of 7.
 .PP
 Alternatively, instead of calling one of the
@@ -195,7 +195,7 @@ and specify the log level as an argument.  For example:
 .in +4n
 .nf
 
-logr_printf(logr, LOG_ALERT, "All work and no play makes %s a dull boy.\\n", "Jack");
+logr_printf(logr, LOGR_ALERT, "All work and no play makes %s a dull boy.\\n", "Jack");
 .fi
 .in
 .SH TIMESTAMPS
@@ -355,7 +355,7 @@ instance, call one of the
 .B logr_xxx()
 functions such as
 .B logr_err().
-The log levels correspond to the definitions of
+The log levels correspond to similar definitions in
 .B syslog(3).
 For example:
 .in +4n
