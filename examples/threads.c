@@ -67,7 +67,6 @@ threads_prefix(const char *file, int line,
     static int n = 0;
     snprintf(buf, sizeof(buf), "%d", ++n);
 #endif
-
     return fprintf(f, "%8s[%s]: ", buf, logr_util_priority(logr, level));
 }
 
@@ -75,11 +74,12 @@ TRV TCALL
 thread_routine(void *arg)
 {
     int i, n = (2.5 * THRESHOLD) / strlen(MSG);
-    const char *name = (const char *)arg;
 
 #ifdef HAVE_PRCTL_H
+    const char *name = (const char *)arg;
     prctl(PR_SET_NAME, name);
 #elif defined(__WIN32)
+    const char *name = (const char *)arg;
     BOOL b;
     b = TlsSetValue(tls_i, (PVOID)name);
     assert(b);
