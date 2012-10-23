@@ -17,6 +17,8 @@ logr \- customizable logging library for C/C++
 .B logr_t *logr_getlogger();
 
 .B int logr_set_level(logr_t *logr, unsigned int level);
+.B unsigned int logr_get_level(logr_t *logr);
+
 .B int logr_set_prefix_format(logr_t *logr, char *fmt)
 .B int logr_set_timestamp_format(logr_t *logr, char *fmt)
 
@@ -196,6 +198,13 @@ and specify the log level as an argument.  For example:
 .nf
 
 logr_printf(logr, LOGR_ALERT, "All work and no play makes %s a dull boy.\\n", "Jack");
+.fi
+.PP
+You can find out the curent log via:
+.in +4n
+.nf
+
+unsigned int logr_get_level(logr_t *logr);
 .fi
 .in
 .SH TIMESTAMPS
