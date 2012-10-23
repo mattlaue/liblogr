@@ -193,6 +193,15 @@ logr_set_level(logr_t *logr, unsigned int level)
     return 0;
 }
 
+unsigned int
+logr_get_level(logr_t *logr)
+{
+    if (logr == NULL) {
+        return _logr_errno(EINVAL);
+    }
+    return logr->level;
+}
+
 #ifdef HAVE_SAVELOG
 static void
 _logr_sigchild(int sig, siginfo_t *si, void *unused)

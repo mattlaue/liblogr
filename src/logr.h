@@ -203,6 +203,13 @@ typedef const char * (*logr_priority_func_t)(int);
     int logr_set_level(logr_t *logr, unsigned int level);
 
 /**
+ * Get the current maximum level to be output.
+ *
+ * \returns the current log level.
+ */
+    unsigned int logr_get_level(logr_t *logr);
+
+/**
  * Set the maximum size the log file may grow to before being rotated.
  *
  * \param logr The logr_t instance to use.
