@@ -96,6 +96,12 @@ shown above would then result in:
 
 .fi
 .in
+.B NOTE:
+Do not use the %T timestamp format as this isn't supported on Microsoft Window's based systems. Instead use the full specification %H:%M:%S.
+.nf
+
+.fi
+.in
 You can choose two formats
 .B LOGR_PREFIX_FORMAT_BASIC
 and
@@ -216,19 +222,11 @@ is defined like this:
 .in +4n
 .nf
 
-#define LOGR_DEFAULT_DATE_FORMAT   "%F-%T" 
+#define LOGR_DEFAULT_DATE_FORMAT   "%Y-%m-%d-%H:%M:%S"
 
 .fi
 .in
-The
-.B %F
-timestamp specification is equivalent to:
-.B %Y-%m-%d
-and the
-.B %T
-is equivalent to
-.B %H:%M:%S
-resulting in the default timestamp looking like this:
+The resulting default timestamp looks like this:
 .in +4n
 .nf
 
@@ -248,7 +246,7 @@ For example:
 .in +4n
 .nf
 
-logr_set_timestamp_format(logr, "[%a %b %d %T %Y]");
+logr_set_timestamp_format(logr, "[%a %b %d %H:%M:%S %Y]");
 
 .fi
 .in
@@ -259,6 +257,9 @@ which results in this format of timestamp in the log:
 [Mon Feb 06 12:46:18 2012] [err] All work and no play makes Jack a dull boy.
 .fi
 .in
+
+
+
 .SH LOGGING TO A FILE
 By default, logs are written to
 .I stderr.
@@ -388,7 +389,7 @@ main(int argc, char **argv)
     int rc;
     logr_t *logr = logr_getlogger();
 
-    rc = logr_set_timestamp_format(logr, "%F-%T");
+    rc = logr_set_timestamp_format(logr, "%F-%H:%M:%S");
     assert(rc == 0);
 
     rc = logr_set_prefix_format(logr, "[%{timestamp}s] ");
