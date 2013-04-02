@@ -59,6 +59,19 @@ AC_ARG_ENABLE(examples,
      [ ac_enable_examples=$enableval ], [ ac_enable_examples=yes] )
 AM_CONDITIONAL(LOGR_ENABLE_EXAMPLES, [test "x${ac_enable_examples}" != "xno"])
 
+dnl Debug version
+AC_ARG_ENABLE(debug,
+AS_HELP_STRING([--enable-debug],
+               [enable debugging, default: no]),
+[case "${enableval}" in
+             yes) debug=true ;;
+             no)  debug=false ;;
+             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+esac],
+[debug=false])
+
+AM_CONDITIONAL(LOGR_ENABLE_DEBUG, test x"$debug" = x"true")
+
 ac_man_date=`date  +"%B %Y"`
 AC_SUBST([LOGR_SO_VERSION], [1:0:1])
 AC_SUBST([MAN_DATE], [${ac_man_date}])
