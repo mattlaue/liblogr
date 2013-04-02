@@ -32,6 +32,7 @@ extern "C" {
 /** @file */
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <unistd.h>
 
 /**
@@ -188,6 +189,25 @@ typedef const char * (*logr_priority_func_t)(int);
     logr_xprintf(LOGR_XARGS, logr, level, fmt, ##args)
 /// @cond
     int logr_xprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, ...);
+/// @endcond
+
+/**
+ * Print formatted output to the log using a va_list.
+ *
+ * When <i>level</i> is less than or equal to the level specified by
+ * <i>logr_set_level</i>, then print the message to the log file.  This
+ * routine is implemented as a macro wrapper around <i>logr_vxprintf</i>.
+ *
+ * \param logr The logr_t instance to use.
+ * \param level Level for this message.
+ * \param fmt <i>printf</i>-style format string.
+ * \param ap Variable argument list for <i>fmt</i>
+ */
+#define logr_vprintf(logr, level, fmt, ap) \
+    logr_vxprintf(LOGR_XARGS, logr, level, fmt, ap)
+/// @cond
+    int logr_vxprintf(LOGR_XARGV, logr_t *logr, int level,
+                      const char *fmt, va_list ap);
 /// @endcond
 
 /**
