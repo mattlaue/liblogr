@@ -617,11 +617,16 @@ _logr_util_prefix(LOGR_XARGV, logr_t *logr, int level, FILE *f)
     return 0;
 }
 
+/* This is the main function for the logr library used by all output. */
 int
 logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
 {
     int n = 0, retval;
     FILE *f;
+
+    if (logr == NULL) {
+        return 0;
+    }
 
     logr_lock(logr);
 
