@@ -346,6 +346,14 @@ typedef const char * (*logr_priority_func_t)(int);
 /// @endcond
 
 /**
+ * Shorthand for: logr_printf(logr_getlogger(), LOGR_WARNING, fmt, ...)
+ * This routine is implemented as a macro.
+ * \see logr_printf
+ * \see logr_getlogger
+ */
+#define logr_warn(fmt, args...) logr_warning_(LOGR_XARGS, fmt, ## args)
+
+/**
  * Shorthand for: logr_printf(logr_getlogger(), LOGR_NOTICE, fmt, ...)
  * This routine is implemented as a macro.
  * \see logr_printf
