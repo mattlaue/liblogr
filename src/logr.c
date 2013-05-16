@@ -673,7 +673,7 @@ logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
             logr->size > logr->threshold)) {
         pid_t pid;
         /* do a flush to ensure the file is not erroneously empty. */
-        fflush(logr->f);
+        fflush(f);
 
         pid = _logr_savelog(logr->path);
         if (pid > 0) {
@@ -683,6 +683,7 @@ logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
     }
 #endif
     logr_unlock(logr);
+    fflush(f);
 
     return n;
 }
