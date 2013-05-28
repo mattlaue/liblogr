@@ -23,3 +23,7 @@ Makefile.in
 *.o
 file.log*
 /ar-lib
+/confdefs.h
+/conftest
+/conftest.c
+/conftest.nm
