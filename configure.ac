@@ -1,4 +1,4 @@
-AC_INIT([logr], [1.0.3])
+AC_INIT([logr], [1.0.4])
 AC_PREREQ([2.65])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AM_PROG_AR

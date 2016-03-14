@@ -59,6 +59,11 @@ extern "C" {
 #define LOGR_MAX_TIMESTAMP_SIZE 256
 
 /**
+ * Maximum number of files for rotation.
+ */
+#define LOGR_DEFAULT_MAX_FILE_ROTATE 7
+
+/**
  * Log levels.
  * Based on equivalent ones in syslog.h.
  * We define our own since syslog.h does not exist on windows.
@@ -239,6 +244,16 @@ typedef const char * (*logr_priority_func_t)(int);
     int logr_set_threshold(logr_t *logr, off_t threshold);
 
 /**
+ * Set the maximum number of files that should be rotated.
+ *
+ * \param logr The logr_t instance to use.
+ * \param max_files The maximum number of files to rotate.
+ * \returns 0 on success or -1 on error.
+ */
+
+    int logr_set_rotate_file_count(logr_t *logr, int max_files);
+
+/**
  * Format the timestamp according to the provided specification.
  *
  * The output format of the date can be set in the same manner as the
@@ -404,6 +419,16 @@ typedef const char * (*logr_priority_func_t)(int);
  * \returns 0 on success; -1 on error.
  */
     int logr_util_date(logr_t *logr, void *buf, size_t size);
+
+/**
+ * Utility function that returns a LOGR level when passed a LOGR name.
+ *
+ * \param level_name Level name for this message (.e.g. "debug" or "info")
+ * \returns int representation of <i>level_name</i>
+ * \returns -1 on error;
+ */
+    int logr_util_level(const char *level_name);
+
 
 #ifdef __cplusplus
 }
