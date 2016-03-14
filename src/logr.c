@@ -53,9 +53,8 @@ typedef int bool;
 #define false 0
 #endif
 
-#ifdef HAVE_SAVELOG
-#include <sys/wait.h> // waitpid()
-#endif
+#define MAX_ROTATE_EXT_LEN strlen(".99")
+#define MAX_ROTATE_FILES 99
 
 typedef struct _code {
     char *c_name;
@@ -77,7 +76,6 @@ CODE prioritynames[] = {
 };
 
 
-#define LOGR_SAVELOG_WAITPID_MAX 10
 #define _XARGS file, line, func, pretty_func
 
 #define STREQ(name, field, size) \
@@ -96,16 +94,15 @@ struct logr {
     unsigned int level;
     off_t size;
     off_t threshold;
-#ifdef HAVE_SAVELOG
-    pid_t savelog_pid;
-    unsigned int savelog_waitpid_retries;
-#endif
+    int rotate_file_count;
+    int rotated_file_max;
     logr_ops_t ops;
 };
 
 static struct logr logr = {
     .lock = PTHREAD_MUTEX_INITIALIZER,
     .level = LOGR_ERR,
+    .rotated_file_max = LOGR_DEFAULT_MAX_FILE_ROTATE
 };
 
 logr_t *
@@ -119,6 +116,7 @@ _logr_init(logr_t *logr)
     memset(logr, 0, sizeof(struct logr));
     pthread_mutex_init(&logr->lock, NULL);
     logr->level = LOGR_ERR;
+    logr->rotated_file_max = LOGR_DEFAULT_MAX_FILE_ROTATE;
 }
 
 static inline int
@@ -184,6 +182,20 @@ logr_util_priority(logr_t *unused, int level)
 }
 
 int
+logr_util_level(const char *level_name)
+{
+    int i = 0;
+    CODE *p;
+
+    for (p = &prioritynames[i]; p->c_name != NULL; p = &prioritynames[++i]) {
+        if (strcasecmp(p->c_name, level_name) == 0) {
+            return p->c_val;
+        }
+    }
+    return -1;
+}
+
+int
 logr_set_level(logr_t *logr, unsigned int level)
 {
     if (logr == NULL) {
@@ -202,25 +214,9 @@ logr_get_level(logr_t *logr)
     return logr->level;
 }
 
-#ifdef HAVE_SAVELOG
-static void
-_logr_sigchild(int sig, siginfo_t *si, void *unused)
-{
-    pid_t pid;
-
-    do {
-        pid = waitpid(-1, NULL, WNOHANG);
-    } while (pid > 0);
-}
-#endif
-
 int
 logr_set_threshold(logr_t *logr, off_t threshold)
 {
-#ifdef HAVE_SAVELOG
-
-    struct sigaction sa;
-
     if (logr == NULL) {
         return _logr_errno(EINVAL);
     }
@@ -228,20 +224,18 @@ logr_set_threshold(logr_t *logr, off_t threshold)
     if (threshold == 0) {
         return 0;
     }
-    sigaction(SIGCHLD, NULL, &sa);
-    if (sa.sa_handler == NULL && sa.sa_sigaction == NULL) {
-        sa.sa_flags = SA_SIGINFO | SA_NOCLDSTOP;
-        sigemptyset(&sa.sa_mask);
-        sa.sa_sigaction = _logr_sigchild;
-        sigaction(SIGCHLD, &sa, NULL);
+    return 0;
+}
+
+int
+logr_set_rotate_file_count(logr_t *logr, int max_files)
+{
+    if ((logr == NULL) || (max_files > MAX_ROTATE_FILES)) {
+        return _logr_errno(EINVAL);
     }
 
+    logr->rotated_file_max = max_files;
     return 0;
-
-#else // HAVE_SAVELOG
-    return _logr_errno(ENOTSUP);
-#endif
-
 }
 
 void
@@ -419,26 +413,48 @@ logr_set_ops(logr_t *logr, logr_ops_t *ops)
     return 0;
 }
 
-#ifdef HAVE_SAVELOG
-pid_t
-_logr_savelog(const char *path)
+void
+_logr_rotatelog(logr_t *logr)
 {
-    pid_t pid;
+    int retval;
+    char newname[strlen(logr->path) + MAX_ROTATE_EXT_LEN];
+    char oldname[strlen(logr->path) + MAX_ROTATE_EXT_LEN];
+    int i;
 
-    pid = fork();
-    if (pid == -1) {
-        return -1;
+    if (logr->rotate_file_count < logr->rotated_file_max) {
+        logr->rotate_file_count++;
     }
 
-    if (pid == 0) {
-        /* child */
-        int retval;
-        retval = execl("/usr/bin/savelog", "-d", "-j", "-q", "-p", path, NULL);
-        exit(retval);
-    }
-    return pid;
-}
+    for(i = logr->rotate_file_count; i >= 1; i--) {
+        if (i == 1) {
+            strcpy(oldname, logr->path);
+        } else {
+            sprintf(oldname, "%s.%d", logr->path, i-1);
+        }
+
+        sprintf(newname, "%s.%d", logr->path, i);
+
+#ifdef __WIN32
+        /*
+         * win32 fails with "File exists." if the newname exists during
+         * the rename.
+         */
+        unlink(newname);
 #endif
+
+        // printf("renaming %s to %s\n\r", oldname, newname);
+        fflush(stdout);
+
+        retval = rename(oldname, newname);
+        if (retval != 0) {
+            // fixme
+            printf("ERROR: couldn't rename the file from %s to %s\n\r",
+                   oldname, newname);
+            perror("rename");
+            continue;
+        }
+    }
+}
 
 static int
 _logr_fputs(const char *p, FILE *f)
@@ -630,27 +646,6 @@ logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
 
     logr_lock(logr);
 
-#ifdef HAVE_SAVELOG
-    if (logr->savelog_pid > 0) {
-        pid_t pid;
-        if (logr->savelog_waitpid_retries > 0) {
-            pid = waitpid(logr->savelog_pid, NULL, WNOHANG | WUNTRACED);
-        } else {
-            pid = waitpid(logr->savelog_pid, NULL, 0);
-        }
-        if (pid != 0) {
-            /* anything but zero means the process doesn't exist. */
-            logr->savelog_pid = 0;
-            logr->savelog_waitpid_retries = 0;
-            /* if this fails, we revert to stderr. */
-            logr->f = freopen(logr->path, "a", logr->f);
-            logr->size = 0;
-        } else {
-            logr->savelog_waitpid_retries--;
-        }
-    }
-#endif
-
     if (logr->level < level) {
         logr_unlock(logr);
         return 0;
@@ -667,24 +662,24 @@ logr_vxprintf(LOGR_XARGV, logr_t *logr, int level, const char *fmt, va_list ap)
 
     n += vfprintf(f, fmt, ap);
     logr->size += n;
-
-#ifdef HAVE_SAVELOG
-    if ((logr->savelog_pid == 0) && (logr->threshold != 0) && (
-            logr->size > logr->threshold)) {
-        pid_t pid;
-        /* do a flush to ensure the file is not erroneously empty. */
-        fflush(f);
-
-        pid = _logr_savelog(logr->path);
-        if (pid > 0) {
-            logr->savelog_pid = pid;
-            logr->savelog_waitpid_retries = LOGR_SAVELOG_WAITPID_MAX;
-        }
-    }
-#endif
-    logr_unlock(logr);
     fflush(f);
 
+    if (logr->path != NULL) {
+        if ((logr->threshold != 0) && (logr->size > logr->threshold) &&
+                 (logr->path != NULL)) {
+            fclose(logr->f);    // Have to close before rename for win32
+            _logr_rotatelog(logr);
+            logr->f = fopen(logr->path, "a");
+            logr->size = 0;
+            if (logr->f == NULL) {
+                // fixme
+                printf("Couldn't reopen log file %s\n", logr->path);
+                n = -1;
+            }
+        }
+    }
+
+    logr_unlock(logr);
     return n;
 }
 

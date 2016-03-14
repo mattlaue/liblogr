@@ -23,6 +23,7 @@ logr \- customizable logging library for C/C++
 .B int logr_set_timestamp_format(logr_t *logr, char *fmt)
 
 .B int logr_set_threshold(logr_t *logr, off_t threshold);
+.B int logr_set_rotate_file_count(logr_t *logr, int max_files);
 
 .B int logr_printf(logr_t *logr, int log_level, char *format, ...);
 
@@ -311,9 +312,16 @@ By default, log files are not rotated -
 .B log_set_threshold()
 must be called to enable log file rotation.enable log file rotation.
 .PP
-Files are rotated and compressed by a child process using
-.B savelog(8)
-after the log files have reached their maximum threshold size.
+.nf
+
+int logr_set_rotate_file_count(logr_t *logr, int max_files);
+
+.fi
+.in
+You can set the maximum files to save on rotation by calling
+.B logr_set_rotate_file_count.
+The default is currently 7.
+
 .SH MULTIPLE LOGGERS
 You can have more than one logger in the same
 program,  for example, one that logs to
@@ -412,8 +420,6 @@ The
 .B logr
 functions generally return 0 on success and non-zero on failure.
 .SH SEE ALSO
-.B savelog(8)
-.PP
 The detailed API documention is available at:
 .in +4n
 
